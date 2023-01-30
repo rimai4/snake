@@ -30,18 +30,13 @@ title_font = pygame.font.SysFont("Liga SFMono Nerd Font", 32)
 body_font = pygame.font.SysFont("Liga SFMono Nerd Font", 16)
 pygame.display.set_caption("Snake")
 apple_image = pygame.image.load("apple.png")
-scaled_apple = pygame.transform.scale(apple_image, (20, 20))
-
-
-class TextRenderer:
-    def __init__(self):
-        pass
+scaled_apple = pygame.transform.scale(apple_image, (20, 20)).convert()
 
 
 class Snake:
     TIMEOUTS = {"normal": 100, "fast": 50, "blazing": 25}
 
-    def __init__(self, speed):
+    def __init__(self, speed="normal"):
         self.initialize_body()
         self.surface = GAMESURF
         self.last_move = pygame.time.get_ticks()
@@ -122,74 +117,93 @@ class Snake:
             pygame.draw.rect(self.surface, GREEN, rect, 0)
 
 
+class TextRenderer:
+    def __init__(self, surface):
+        self.default_surface = surface
+
+    def render(
+        self, text, color=WHITE, font=body_font, surface=None, **location_kwargs
+    ):
+        if surface is None:
+            surface = self.default_surface
+        text_surface = font.render(text, True, color)
+        title_rect = text_surface.get_rect(**location_kwargs)
+        surface.blit(text_surface, title_rect)
+
+
 class Game:
     SPEED_KEYS = {"n": "normal", "f": "fast", "b": "blazing"}
 
-    def __init__(self, speed="normal"):
-        self.board_coordinates = self.get_all_coordinates()
-        self.score = 0
-        self.snake = Snake(speed)
-        self.spawn_apple()
-        self.surface = GAMESURF
+    def __init__(self):
         self.game_over = False
         self.started = False
+        self.board_coordinates = self.get_all_coordinates()
+        self.snake = Snake()
+        self.spawn_apple()
+        self.surface = GAMESURF
+        self.score_surface = SCORESURF
+        self.text_renderer = TextRenderer(self.surface)
 
-    def start(self):
+    def start(self, speed):
         self.started = True
         self.game_over = False
         self.score = 0
+        self.snake.initialize_body()
+        self.snake.set_speed(speed)
 
     def get_all_coordinates(self):
-        blocks = SCREEN_SIZE // SNAKE_SIZE
+        block_count = SCREEN_SIZE // SNAKE_SIZE
         coordinates = []
-        for i in range(blocks):
-            for j in range(blocks):
+        for i in range(block_count):
+            for j in range(block_count):
                 coordinates.append((i, j))
         return coordinates
 
+    def on_apple_hit(self):
+        self.score += 1
+        self.spawn_apple()
+        self.snake.extend()
+
     def spawn_apple(self):
-        apple_location = None
-        while not apple_location:
-            attempted_location = random.choice(self.board_coordinates)
-            if not self.snake.overlaps(attempted_location):
-                apple_location = attempted_location
-        self.apple = apple_location
+        possible_locations = list(set(self.board_coordinates) - set(self.snake.body))
+        self.apple = random.choice(possible_locations)
 
     def draw_apple(self):
         topleft = [(loc * SNAKE_SIZE) for loc in self.apple]
         self.surface.blit(scaled_apple, topleft)
 
     def draw_start_screen(self):
-        title_surface = title_font.render("SNAKE", True, WHITE)
-        text_surface = body_font.render("Press key to start game", True, WHITE)
-        speed_surface = body_font.render(
-            "n = normal, f = fast, b = blazingly fast", True, WHITE
+        self.text_renderer.render(
+            "SNAKE", font=title_font, center=(SCREEN_SIZE / 2, 100)
         )
-        title_rect = title_surface.get_rect(center=(SCREEN_SIZE / 2, 100))
-        text_rect = text_surface.get_rect(center=(SCREEN_SIZE / 2, 250))
-        speed_rect = speed_surface.get_rect(center=(SCREEN_SIZE / 2, 300))
-
-        self.surface.blit(title_surface, title_rect)
-        self.surface.blit(text_surface, text_rect)
-        self.surface.blit(speed_surface, speed_rect)
+        self.text_renderer.render(
+            "Press key to start game", center=(SCREEN_SIZE / 2, 200)
+        )
+        self.text_renderer.render(
+            "n = normal, f = fast, b = very fast",
+            center=(SCREEN_SIZE / 2, 300),
+        )
 
     def draw_game_over(self):
-        game_over_surface = title_font.render("Game over", True, WHITE)
-        game_over_rect = game_over_surface.get_rect(center=SCREEN_CENTER)
-        text_surface = body_font.render("Press key to start game", True, WHITE)
-        text_rect = text_surface.get_rect(center=(SCREEN_SIZE / 2, 250))
-        speed_surface = body_font.render(
-            "n = normal, f = fast, b = blazingly fast", True, WHITE
+        self.text_renderer.render(
+            "Game over", font=title_font, center=(SCREEN_SIZE / 2, 100)
         )
-        speed_rect = speed_surface.get_rect(center=(SCREEN_SIZE / 2, 300))
-        self.surface.blit(game_over_surface, game_over_rect)
-        self.surface.blit(text_surface, text_rect)
-        self.surface.blit(speed_surface, speed_rect)
+        self.text_renderer.render(
+            "Press key to start game", center=(SCREEN_SIZE / 2, 200)
+        )
+        self.text_renderer.render(
+            "n = normal, f = fast, b = very fast",
+            center=(SCREEN_SIZE / 2, 300),
+        )
 
     def draw_score(self):
-        score_surface = title_font.render(str(self.score), True, BLACK)
-        score_rect = score_surface.get_rect(center=(SCREEN_SIZE / 2, SCORE_SIZE / 2))
-        SCORESURF.blit(score_surface, score_rect)
+        self.text_renderer.render(
+            str(self.score),
+            surface=self.score_surface,
+            color=BLACK,
+            font=title_font,
+            center=(SCREEN_SIZE / 2, SCORE_SIZE / 2),
+        )
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -210,18 +224,16 @@ class Game:
 
                 if (not self.started or self.game_over) and character in "nfb":
                     speed = self.SPEED_KEYS[character]
-                    self.snake.initialize_body()
-                    self.snake.set_speed(speed)
-                    self.start()
+                    self.start(speed)
 
 
 def start():
     game = Game()
+    snake = game.snake
 
     while True:
-        snake = game.snake
         game.handle_events()
-        SCORESURF.fill(WHITE)
+        game.score_surface.fill(WHITE)
         GAMESURF.fill(BLACK)
         if not game.started:
             game.draw_start_screen()
@@ -236,16 +248,14 @@ def start():
                 game.game_over = True
 
             if snake.overlaps(game.apple, head_only=True):
-                game.score += 1
-                game.spawn_apple()
-                snake.extend()
+                game.on_apple_hit()
 
             game.draw_apple()
             snake.draw()
             game.draw_score()
 
-        DISPLAYSURF.blit(SCORESURF, (0, 0))
-        DISPLAYSURF.blit(GAMESURF, (0, SCORE_SIZE))
+        DISPLAYSURF.blit(game.score_surface, (0, 0))
+        DISPLAYSURF.blit(game.surface, (0, SCORE_SIZE))
         pygame.display.update()
         clock.tick(FPS)
 
