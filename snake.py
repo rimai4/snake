@@ -109,26 +109,16 @@ class Snake:
         self.body.insert(0, self.last_tail)
 
     def collides_with_self(self):
-        return len(set(self.body)) != len(self.body)
+        """
+        Check if head collides with body, including the last tail position.
+        """
+        targets = [self.last_tail] + self.body[:-1]
+        return self.head in targets
 
     def draw(self):
         for x, y in self.body:
             rect = pygame.Rect(x * SNAKE_SIZE, y * SNAKE_SIZE, SNAKE_SIZE, SNAKE_SIZE)
             pygame.draw.rect(self.surface, GREEN, rect, 0)
-
-
-class TextRenderer:
-    def __init__(self, surface):
-        self.default_surface = surface
-
-    def render(
-        self, text, color=WHITE, font=body_font, surface=None, **location_kwargs
-    ):
-        if surface is None:
-            surface = self.default_surface
-        text_surface = font.render(text, True, color)
-        title_rect = text_surface.get_rect(**location_kwargs)
-        surface.blit(text_surface, title_rect)
 
 
 class Game:
@@ -142,7 +132,6 @@ class Game:
         self.spawn_apple()
         self.surface = GAMESURF
         self.score_surface = SCORESURF
-        self.text_renderer = TextRenderer(self.surface)
 
     def start(self, speed):
         self.started = True
@@ -172,32 +161,33 @@ class Game:
         topleft = [(loc * SNAKE_SIZE) for loc in self.apple]
         self.surface.blit(scaled_apple, topleft)
 
+    def render_text(
+        self, text, color=WHITE, font=body_font, surface=None, **location_kwargs
+    ):
+        if surface is None:
+            surface = self.surface
+        text_surface = font.render(text, True, color)
+        title_rect = text_surface.get_rect(**location_kwargs)
+        surface.blit(text_surface, title_rect)
+
     def draw_start_screen(self):
-        self.text_renderer.render(
-            "SNAKE", font=title_font, center=(SCREEN_SIZE / 2, 100)
-        )
-        self.text_renderer.render(
-            "Press key to start game", center=(SCREEN_SIZE / 2, 200)
-        )
-        self.text_renderer.render(
+        self.render_text("SNAKE", font=title_font, center=(SCREEN_SIZE / 2, 100))
+        self.render_text("Press key to start game", center=(SCREEN_SIZE / 2, 200))
+        self.render_text(
             "n = normal, f = fast, b = very fast",
             center=(SCREEN_SIZE / 2, 300),
         )
 
     def draw_game_over(self):
-        self.text_renderer.render(
-            "Game over", font=title_font, center=(SCREEN_SIZE / 2, 100)
-        )
-        self.text_renderer.render(
-            "Press key to start game", center=(SCREEN_SIZE / 2, 200)
-        )
-        self.text_renderer.render(
+        self.render_text("Game over", font=title_font, center=(SCREEN_SIZE / 2, 100))
+        self.render_text("Press key to start game", center=(SCREEN_SIZE / 2, 200))
+        self.render_text(
             "n = normal, f = fast, b = very fast",
             center=(SCREEN_SIZE / 2, 300),
         )
 
     def draw_score(self):
-        self.text_renderer.render(
+        self.render_text(
             str(self.score),
             surface=self.score_surface,
             color=BLACK,
@@ -213,6 +203,14 @@ class Game:
 
             if event.type == KEYDOWN:
                 character = pygame.key.name(event.key)
+
+                if not self.started or self.game_over:
+                    if character in "nfb":
+                        speed = self.SPEED_KEYS[character]
+                        self.start(speed)
+                    else:
+                        continue
+
                 if event.key == K_RIGHT and self.snake.is_moving_vertically:
                     self.snake.add_direction_change("right")
                 if event.key == K_LEFT and self.snake.is_moving_vertically:
@@ -221,10 +219,6 @@ class Game:
                     self.snake.add_direction_change("up")
                 if event.key == K_DOWN and self.snake.is_moving_horizontally:
                     self.snake.add_direction_change("down")
-
-                if (not self.started or self.game_over) and character in "nfb":
-                    speed = self.SPEED_KEYS[character]
-                    self.start(speed)
 
 
 def start():
