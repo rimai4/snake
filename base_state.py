@@ -15,8 +15,7 @@ class BaseState:
         pass
 
     def draw(self, screen):
-        if self.done:
-            return
+        pass
 
     def render_text(self, surface, text, color, x, y):
         text_surface = self.font.render(text, True, color)

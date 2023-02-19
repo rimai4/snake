@@ -21,9 +21,7 @@ class Control:
         self.state.done = False
 
     def update(self, dt):
-        if self.state.quit:
-            self.done = True
-        elif self.state.done:
+        if self.state.done:
             self.flip_state()
         self.state.update(self.screen, dt)
 
