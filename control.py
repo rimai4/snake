@@ -16,9 +16,11 @@ class Control:
         self.state = state_dict[self.state_name]
 
     def flip_state(self):
+        self.state.done = False
+        self.state.cleanup()
         self.state_name = self.state.next
         self.state = self.state_dict[self.state_name]
-        self.state.done = False
+        self.state.setup()
 
     def update(self, dt):
         if self.state.done:

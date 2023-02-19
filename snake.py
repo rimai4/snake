@@ -6,16 +6,16 @@ from colors import *
 class Snake:
     TIMEOUTS = {"normal": 100, "fast": 50, "blazing": 25}
 
-    def __init__(self, game):
+    def __init__(self, game, size):
         self.game = game
-        self.body_part_size = 20
+        self.body_part_size = size
         self.initialize_body()
-        self.last_move = pygame.time.get_ticks()
+        self.last_move = None
         self.last_tail = self.body[-1]
         self.direction_changes = []
         self.has_changed_direction = False
         self.timeout = Snake.TIMEOUTS["normal"]
-        self.max_length = 20
+        self.max_length = self.game.game_screen_size / self.body_part_size
 
     @property
     def tail(self):
@@ -55,7 +55,7 @@ class Snake:
 
     def move(self):
         now = pygame.time.get_ticks()
-        if now - self.last_move < self.timeout:
+        if self.last_move and now - self.last_move < self.timeout:
             return
 
         self.last_tail = self.tail

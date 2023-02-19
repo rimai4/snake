@@ -12,13 +12,12 @@ class GameOverScreen(BaseState):
 
     def get_event(self, event):
         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-            self.game.reset()
             self.switch_state()
 
     def update(self, screen, dt):
         self.draw(screen)
 
     def draw(self, screen):
-        width = screen.get_width()
+        width = self.game.game_screen_size
         screen.fill(Colors.BLACK)
         self.render_text(screen, "Game over", Colors.WHITE, width / 2, width / 2)

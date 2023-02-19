@@ -3,55 +3,57 @@ import pygame
 from apple import Apple
 from base_state import BaseState
 from colors import Colors
+from events import (DISABLE_THUNDER_MODE, HIDE_THUNDER_EVENT,
+                    SPAWN_THUNDER_EVENT)
 from snake import Snake
-
-SCREEN_SIZE = 400
-SCORE_SIZE = 50
+from thunder import Thunder
 
 
 class Game(BaseState):
     def __init__(self):
         BaseState.__init__(self)
         self.next = "game_over"
-        self.snake = Snake(self)
+        self.thunder_mode = False
         self.game_screen_size = 400
         self.score_height = 50
-        self.game_over = False
+        self.snake_size = 20
         self.board_coordinates = self.get_all_coordinates()
-        self.apple = Apple(self)
-        self.score_surface = pygame.Surface((SCREEN_SIZE, SCORE_SIZE))
-        self.game_surface = pygame.Surface((SCREEN_SIZE, SCREEN_SIZE))
-        self.score = 0
+        self.score_surface = pygame.Surface((self.game_screen_size, self.score_height))
+        self.game_surface = pygame.Surface(
+            (self.game_screen_size, self.game_screen_size)
+        )
 
     def update(self, screen, dt):
         self.snake.change_direction()
         self.snake.move()
+
         if self.snake.collides_with_self():
             self.switch_state()
-
         if self.snake.overlaps(self.apple.position, head_only=True):
             self.on_apple_hit()
+        if self.snake.overlaps(self.thunder.position, head_only=True):
+            self.on_thunder_hit()
+
         self.draw(screen)
 
-    def reset(self):
-        self.snake.initialize_body()
+    def setup(self):
         self.score = 0
+        self.snake = Snake(self, size=self.snake_size)
+        self.apple = Apple(self)
+        self.thunder = Thunder(self)
+        pygame.time.set_timer(SPAWN_THUNDER_EVENT, 10000, loops=1)
 
-    def draw(self, screen):
-        self.score_surface.fill(Colors.WHITE)
-        self.game_surface.fill(Colors.BLACK)
-        self.apple.draw()
-        self.snake.draw(self.game_surface)
-        self.draw_score()
-        screen.blit(self.score_surface, (0, 0))
-        screen.blit(self.game_surface, (0, self.score_height))
+    def cleanup(self):
+        pygame.time.set_timer(SPAWN_THUNDER_EVENT, 0)
+        pygame.time.set_timer(HIDE_THUNDER_EVENT, 0)
+        pygame.time.set_timer(DISABLE_THUNDER_MODE, 0)
 
     def start(self):
         self.score = 0
         self.snake.initialize_body()
 
     def get_all_coordinates(self):
-        block_count = self.game_screen_size // self.snake.body_part_size
+        block_count = self.game_screen_size // self.snake_size
         coordinates = []
         for i in range(block_count):
             for j in range(block_count):
@@ -59,9 +61,26 @@ class Game(BaseState):
         return coordinates
 
     def on_apple_hit(self):
-        self.score += 1
+        self.score += 2 if self.thunder_mode else 1
         self.apple.update_coordinates()
         self.snake.extend()
+
+    def on_thunder_hit(self):
+        self.thunder_mode = True
+        self.thunder.hide()
+        self.snake.set_speed("fast")
+        pygame.time.set_timer(DISABLE_THUNDER_MODE, 8000, loops=1)
+        pygame.time.set_timer(HIDE_THUNDER_EVENT, 0)
+
+    def draw(self, screen):
+        self.score_surface.fill(Colors.YELLOW if self.thunder_mode else Colors.WHITE)
+        self.game_surface.fill(Colors.BLACK)
+        self.apple.draw()
+        self.snake.draw(self.game_surface)
+        self.thunder.draw()
+        self.draw_score()
+        screen.blit(self.score_surface, (0, 0))
+        screen.blit(self.game_surface, (0, self.score_height))
 
     def draw_score(self):
         self.render_text(
@@ -76,9 +95,20 @@ class Game(BaseState):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT and self.snake.is_moving_vertically:
                 self.snake.add_direction_change("right")
-            if event.key == pygame.K_LEFT and self.snake.is_moving_vertically:
+            elif event.key == pygame.K_LEFT and self.snake.is_moving_vertically:
                 self.snake.add_direction_change("left")
-            if event.key == pygame.K_UP and self.snake.is_moving_horizontally:
+            elif event.key == pygame.K_UP and self.snake.is_moving_horizontally:
                 self.snake.add_direction_change("up")
-            if event.key == pygame.K_DOWN and self.snake.is_moving_horizontally:
+            elif event.key == pygame.K_DOWN and self.snake.is_moving_horizontally:
                 self.snake.add_direction_change("down")
+
+        elif event.type == SPAWN_THUNDER_EVENT:
+            self.thunder.update_location()
+            pygame.time.set_timer(HIDE_THUNDER_EVENT, 6000, loops=1)
+        elif event.type == HIDE_THUNDER_EVENT:
+            self.thunder.hide()
+            pygame.time.set_timer(SPAWN_THUNDER_EVENT, 10000, loops=1)
+        elif event.type == DISABLE_THUNDER_MODE:
+            self.thunder_mode = False
+            self.snake.set_speed("normal")
+            pygame.time.set_timer(SPAWN_THUNDER_EVENT, 10000, loops=1)

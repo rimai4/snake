@@ -14,9 +14,6 @@ class BaseState:
     def update(self, screen, dt):
         pass
 
-    def draw(self, screen):
-        pass
-
     def render_text(self, surface, text, color, x, y):
         text_surface = self.font.render(text, True, color)
         text_rect = text_surface.get_rect()
@@ -25,3 +22,9 @@ class BaseState:
 
     def switch_state(self):
         self.done = True
+
+    def setup(self):
+        pass
+
+    def cleanup(self):
+        pass
