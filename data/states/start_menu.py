@@ -1,7 +1,7 @@
 import pygame
 
-from base_state import BaseState
-from colors import Colors
+from data.colors import Colors
+from data.states.base_state import BaseState
 
 
 class StartMenu(BaseState):

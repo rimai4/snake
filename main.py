@@ -2,10 +2,10 @@ import sys
 
 import pygame
 
-from control import Control
-from game import Game
-from game_over import GameOverScreen
-from start_menu import StartMenu
+from data.control import Control
+from data.states.game import Game
+from data.states.game_over import GameOverScreen
+from data.states.start_menu import StartMenu
 
 pygame.init()
 pygame.display.set_caption("Snake")

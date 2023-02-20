@@ -1,6 +1,6 @@
 import pygame
 
-from colors import *
+from data.colors import Colors
 
 
 class Snake:

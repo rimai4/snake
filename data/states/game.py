@@ -1,12 +1,12 @@
 import pygame
 
-from apple import Apple
-from base_state import BaseState
-from colors import Colors
-from events import (DISABLE_THUNDER_MODE, HIDE_THUNDER_EVENT,
-                    SPAWN_THUNDER_EVENT)
-from snake import Snake
-from thunder import Thunder
+from data.apple import Apple
+from data.colors import Colors
+from data.events import (DISABLE_THUNDER_MODE, HIDE_THUNDER_EVENT,
+                         SPAWN_THUNDER_EVENT)
+from data.snake import Snake
+from data.states.base_state import BaseState
+from data.thunder import Thunder
 
 
 class Game(BaseState):
