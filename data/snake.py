@@ -87,7 +87,7 @@ class Snake:
         targets = [self.last_tail] + self.body[:-1]
         return self.head in targets
 
-    def draw(self, surface):
+    def draw(self):
         for x, y in self.body:
             rect = pygame.Rect(
                 x * self.body_part_size,
@@ -95,4 +95,4 @@ class Snake:
                 self.body_part_size,
                 self.body_part_size,
             )
-            pygame.draw.rect(surface, Colors.GREEN, rect, 0)
+            pygame.draw.rect(self.game.game_surface, Colors.GREEN, rect, 0)

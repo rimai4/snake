@@ -25,6 +25,7 @@ class StartMenu(BaseState):
             Colors.WHITE,
             self.screen_width / 2,
             self.screen_height * 0.25,
+            title=True,
         )
         self.render_text(
             screen,

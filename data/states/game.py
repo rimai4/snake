@@ -7,12 +7,12 @@ from data.events import (DISABLE_THUNDER_MODE, HIDE_THUNDER_EVENT,
 from data.snake import Snake
 from data.states.base_state import BaseState
 from data.thunder import Thunder
+from db import is_high_score
 
 
 class Game(BaseState):
     def __init__(self):
         BaseState.__init__(self)
-        self.next = "game_over"
         self.thunder_mode = False
         self.game_screen_size = 400
         self.score_height = 50
@@ -28,7 +28,7 @@ class Game(BaseState):
         self.snake.move()
 
         if self.snake.collides_with_self():
-            self.switch_state()
+            self.on_self_hit()
         if self.snake.overlaps(self.apple.position, head_only=True):
             self.on_apple_hit()
         if self.snake.overlaps(self.thunder.position, head_only=True):
@@ -60,6 +60,13 @@ class Game(BaseState):
                 coordinates.append((i, j))
         return coordinates
 
+    def on_self_hit(self):
+        if is_high_score(self.score):
+            self.next = "name_entry"
+        else:
+            self.next = "game_over"
+        self.switch_state()
+
     def on_apple_hit(self):
         self.score += 2 if self.thunder_mode else 1
         self.apple.update_coordinates()
@@ -76,7 +83,7 @@ class Game(BaseState):
         self.score_surface.fill(Colors.YELLOW if self.thunder_mode else Colors.WHITE)
         self.game_surface.fill(Colors.BLACK)
         self.apple.draw()
-        self.snake.draw(self.game_surface)
+        self.snake.draw()
         self.thunder.draw()
         self.draw_score()
         screen.blit(self.score_surface, (0, 0))
