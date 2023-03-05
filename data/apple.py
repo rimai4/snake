@@ -17,7 +17,8 @@ class Apple:
             set(self.game.board_coordinates) - set(self.game.snake.body)
         )
         self.position = random.choice(possible_locations)
-        self.coordinates = [coord * self.size for coord in self.position]
+        x, y = self.position
+        self.coordinates = (x * self.size, y * self.size)
 
     def draw(self):
         self.game.game_surface.blit(self.image, self.coordinates)

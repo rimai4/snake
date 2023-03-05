@@ -1,19 +1,22 @@
+import random
+
 import pygame
 
 from data.apple import Apple
 from data.colors import Colors
-from data.events import (DISABLE_THUNDER_MODE, HIDE_THUNDER_EVENT,
-                         SPAWN_THUNDER_EVENT)
+from data.events import DISABLE_MODIFIER, HIDE_MODIFIER, SPAWN_MODIFIER
+from data.fortifier import Fortifier
 from data.snake import Snake
 from data.states.base_state import BaseState
 from data.thunder import Thunder
 from db import is_high_score
 
+Modifier = Thunder | Fortifier
+
 
 class Game(BaseState):
     def __init__(self):
         BaseState.__init__(self)
-        self.thunder_mode = False
         self.game_screen_size = 400
         self.score_height = 50
         self.snake_size = 20
@@ -23,30 +26,60 @@ class Game(BaseState):
             (self.game_screen_size, self.game_screen_size)
         )
 
+    @property
+    def fortified_mode(self):
+        return self.mode == "fortifier"
+
+    @property
+    def thunder_mode(self):
+        return self.mode == "thunder"
+
     def update(self, screen, dt):
         self.snake.change_direction()
         self.snake.move()
 
         if self.snake.collides_with_self():
-            self.on_self_hit()
+            self.end()
         if self.snake.overlaps(self.apple.position, head_only=True):
             self.on_apple_hit()
-        if self.snake.overlaps(self.thunder.position, head_only=True):
-            self.on_thunder_hit()
+        if self.modifier and self.snake.overlaps(
+            self.modifier.position, head_only=True
+        ):
+            self.on_modifier_hit()
+        if self.fortified_mode and self.fortifier.check_block_hit():
+            self.end()
 
         self.draw(screen)
 
+    def draw(self, screen):
+        self.score_surface.fill(Colors.YELLOW if self.thunder_mode else Colors.WHITE)
+        self.game_surface.fill(Colors.BLACK)
+
+        self.apple.draw()
+        self.snake.draw()
+        if self.modifier:
+            self.modifier.draw()
+
+        if self.fortified_mode:
+            self.fortifier.draw_blocks()
+        self.draw_score()
+        screen.blit(self.score_surface, (0, 0))
+        screen.blit(self.game_surface, (0, self.score_height))
+
     def setup(self):
+        self.mode = "normal"
         self.score = 0
         self.snake = Snake(self, size=self.snake_size)
         self.apple = Apple(self)
         self.thunder = Thunder(self)
-        pygame.time.set_timer(SPAWN_THUNDER_EVENT, 10000, loops=1)
+        self.fortifier = Fortifier(self)
+        self.modifier: Modifier = None  # type: ignore
+        pygame.time.set_timer(SPAWN_MODIFIER, 3000, loops=1)
 
     def cleanup(self):
-        pygame.time.set_timer(SPAWN_THUNDER_EVENT, 0)
-        pygame.time.set_timer(HIDE_THUNDER_EVENT, 0)
-        pygame.time.set_timer(DISABLE_THUNDER_MODE, 0)
+        pygame.time.set_timer(SPAWN_MODIFIER, 0)
+        pygame.time.set_timer(HIDE_MODIFIER, 0)
+        pygame.time.set_timer(DISABLE_MODIFIER, 0)
 
     def start(self):
         self.score = 0
@@ -60,7 +93,7 @@ class Game(BaseState):
                 coordinates.append((i, j))
         return coordinates
 
-    def on_self_hit(self):
+    def end(self):
         if is_high_score(self.score):
             self.next = "name_entry"
         else:
@@ -72,22 +105,12 @@ class Game(BaseState):
         self.apple.update_coordinates()
         self.snake.extend()
 
-    def on_thunder_hit(self):
-        self.thunder_mode = True
-        self.thunder.hide()
-        self.snake.set_speed("fast")
-        pygame.time.set_timer(DISABLE_THUNDER_MODE, 8000, loops=1)
-        pygame.time.set_timer(HIDE_THUNDER_EVENT, 0)
-
-    def draw(self, screen):
-        self.score_surface.fill(Colors.YELLOW if self.thunder_mode else Colors.WHITE)
-        self.game_surface.fill(Colors.BLACK)
-        self.apple.draw()
-        self.snake.draw()
-        self.thunder.draw()
-        self.draw_score()
-        screen.blit(self.score_surface, (0, 0))
-        screen.blit(self.game_surface, (0, self.score_height))
+    def on_modifier_hit(self):
+        self.mode = self.modifier.name
+        self.modifier.hide()
+        self.modifier.modify()
+        pygame.time.set_timer(DISABLE_MODIFIER, 8000, loops=1)
+        pygame.time.set_timer(HIDE_MODIFIER, 0)
 
     def draw_score(self):
         self.render_text(
@@ -109,13 +132,14 @@ class Game(BaseState):
             elif event.key == pygame.K_DOWN and self.snake.is_moving_horizontally:
                 self.snake.add_direction_change("down")
 
-        elif event.type == SPAWN_THUNDER_EVENT:
-            self.thunder.update_location()
-            pygame.time.set_timer(HIDE_THUNDER_EVENT, 6000, loops=1)
-        elif event.type == HIDE_THUNDER_EVENT:
-            self.thunder.hide()
-            pygame.time.set_timer(SPAWN_THUNDER_EVENT, 10000, loops=1)
-        elif event.type == DISABLE_THUNDER_MODE:
-            self.thunder_mode = False
-            self.snake.set_speed("normal")
-            pygame.time.set_timer(SPAWN_THUNDER_EVENT, 10000, loops=1)
+        elif event.type == SPAWN_MODIFIER:
+            self.modifier = random.choice([self.thunder, self.fortifier])
+            self.modifier.set_icon_location()
+            pygame.time.set_timer(HIDE_MODIFIER, 10000, loops=1)
+        elif event.type == HIDE_MODIFIER:
+            self.modifier.hide()
+            pygame.time.set_timer(SPAWN_MODIFIER, 10000, loops=1)
+        elif event.type == DISABLE_MODIFIER:
+            self.mode = "normal"
+            self.modifier.reset()
+            pygame.time.set_timer(SPAWN_MODIFIER, 10000, loops=1)
