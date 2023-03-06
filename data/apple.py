@@ -7,8 +7,7 @@ import pygame
 class Apple:
     def __init__(self, game):
         self.game = game
-        apple_image = pygame.image.load(os.path.join("resources", "apple.png"))
-        self.image = pygame.transform.scale(apple_image, (20, 20)).convert()
+        self.image = pygame.image.load(os.path.join("resources", "apple.png"))
         self.size = 20
         self.update_coordinates()
 

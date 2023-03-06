@@ -13,8 +13,7 @@ class Fortifier(BaseModifier):
         self.game = game
         self.size = 20
         self.block_positions = self.get_block_positions()
-        fortifier_image = pygame.image.load(os.path.join("resources", "fortifier.png"))
-        self.image = pygame.transform.scale(fortifier_image, (20, 20)).convert()
+        self.image = pygame.image.load(os.path.join("resources", "fortifier.png"))
 
     def set_icon_location(self):
         possible_locations = list(

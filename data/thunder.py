@@ -10,8 +10,7 @@ class Thunder(BaseModifier):
     def __init__(self, game):
         self.game = game
         self.name = "thunder"
-        thunder_image = pygame.image.load(os.path.join("resources", "thunder.png"))
-        self.image = pygame.transform.scale(thunder_image, (20, 20)).convert()
+        self.image = pygame.image.load(os.path.join("resources", "thunder.png"))
         self.size = 20
 
     def set_icon_location(self):
