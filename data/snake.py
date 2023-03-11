@@ -106,8 +106,30 @@ class Snake:
         if self.direction == "up":
             self.game.game_surface.blit(self.head_up, head_coordinates)
 
+    def draw_tail(self):
+        tail_x, tail_y = self.tail
+        after_tail_x, after_tail_y = self.body[1]
+        if tail_x == after_tail_x:
+            rect = pygame.Rect(
+                (tail_x * self.body_part_size) + (self.body_part_size / 4),
+                tail_y * self.body_part_size,
+                self.body_part_size / 2,
+                self.body_part_size,
+            )
+        else:
+            rect = pygame.Rect(
+                tail_x * self.body_part_size,
+                (tail_y * self.body_part_size) + (self.body_part_size / 4),
+                self.body_part_size,
+                self.body_part_size / 2,
+            )
+
+        pygame.draw.rect(self.game.game_surface, Colors.GREEN, rect, 0)
+
     def draw(self):
-        for x, y in self.body[:-1]:
+        self.draw_tail()
+
+        for x, y in self.body[1:-1]:
             rect = pygame.Rect(
                 x * self.body_part_size,
                 y * self.body_part_size,
@@ -115,4 +137,5 @@ class Snake:
                 self.body_part_size,
             )
             pygame.draw.rect(self.game.game_surface, Colors.GREEN, rect, 0)
+
         self.draw_head()

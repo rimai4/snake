@@ -5,10 +5,10 @@ from data.states.base_state import BaseState
 
 
 class StartMenu(BaseState):
-    def __init__(self, settings):
+    def __init__(self, size):
         BaseState.__init__(self)
         self.next = "game"
-        self.screen_width, self.screen_height = settings["size"]
+        self.screen_width, self.screen_height = size
 
     def get_event(self, event):
         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:

@@ -1,3 +1,4 @@
+import os
 import random
 
 import pygame
@@ -16,15 +17,19 @@ Modifier = Thunder | Fortifier
 
 
 class Game(BaseState):
-    def __init__(self):
+    def __init__(self, block_count, block_size, score_height):
         BaseState.__init__(self)
-        self.game_screen_size = 400
-        self.score_height = 50
-        self.snake_size = 20
+        self.block_count = block_count
+        self.block_size = block_size
+        self.game_screen_size = block_count * block_size
+        self.score_height = score_height
         self.board_coordinates = self.get_all_coordinates()
         self.score_surface = pygame.Surface((self.game_screen_size, self.score_height))
         self.game_surface = pygame.Surface(
             (self.game_screen_size, self.game_screen_size)
+        )
+        self.apple_sound = pygame.mixer.Sound(
+            os.path.join("resources", "apple_sound.wav")
         )
 
     @property
@@ -68,7 +73,7 @@ class Game(BaseState):
     def setup(self):
         self.mode = "normal"
         self.score = 0
-        self.snake = Snake(self, size=self.snake_size)
+        self.snake = Snake(self, size=self.block_size)
         self.apple = Apple(self)
         self.thunder = Thunder(self)
         self.fortifier = Fortifier(self)
@@ -83,7 +88,7 @@ class Game(BaseState):
         pygame.time.set_timer(DISABLE_MODIFIER, 0)
 
     def get_all_coordinates(self):
-        block_count = self.game_screen_size // self.snake_size
+        block_count = self.game_screen_size // self.block_size
         coordinates = []
         for i in range(block_count):
             for j in range(block_count):
@@ -98,6 +103,7 @@ class Game(BaseState):
         self.switch_state()
 
     def on_apple_hit(self):
+        self.apple_sound.play()
         self.score += 2 if self.thunder_mode else 1
         self.apple.update_coordinates()
         self.snake.extend()

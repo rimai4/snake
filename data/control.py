@@ -2,12 +2,11 @@ import pygame
 
 
 class Control:
-    def __init__(self, **settings):
-        self.__dict__.update(settings)
+    def __init__(self, size, fps):
+        self.size = size
+        self.fps = fps
         self.done = False
-        self.screen = pygame.display.set_mode(
-            self.size  # pyright: ignore[reportGeneralTypeIssues]
-        )
+        self.screen = pygame.display.set_mode(self.size)
         self.clock = pygame.time.Clock()
 
     def setup_states(self, state_dict, start_state):
@@ -35,10 +34,7 @@ class Control:
 
     def game_loop(self):
         while not self.done:
-            delta_time = (
-                self.clock.tick(self.fps)  # pyright: ignore[reportGeneralTypeIssues]
-                / 1000.0
-            )
+            delta_time = self.clock.tick(self.fps) / 1000.0
             self.event_loop()
             self.update(delta_time)
             pygame.display.update()

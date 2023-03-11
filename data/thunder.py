@@ -12,7 +12,6 @@ class Thunder(BaseModifier):
         self.game = game
         self.name = "thunder"
         self.image = pygame.image.load(os.path.join("resources", "thunder.png"))
-        self.size = 20
 
     def set_icon_location(self):
         possible_locations = list(
@@ -21,7 +20,7 @@ class Thunder(BaseModifier):
         )
         self.position = random.choice(possible_locations)
         x, y = self.position
-        self.coordinates = (x * self.size, y * self.size)
+        self.coordinates = (x * self.game.block_size, y * self.game.block_size)
 
     def hide(self):
         self.position = []

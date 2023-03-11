@@ -11,7 +11,6 @@ class Fortifier(BaseModifier):
     def __init__(self, game):
         self.name = "fortifier"
         self.game = game
-        self.size = 20
         self.block_positions = self.get_block_positions()
         self.image = pygame.image.load(os.path.join("resources", "fortifier.png"))
 
@@ -23,7 +22,7 @@ class Fortifier(BaseModifier):
         )
         self.position = random.choice(possible_locations)
         x, y = self.position
-        self.coordinates = (x * self.size, y * self.size)
+        self.coordinates = (x * self.game.block_size, y * self.game.block_size)
 
     def get_block_positions(self):
         top_positions = [(i, 0) for i in range(20)]
@@ -47,5 +46,10 @@ class Fortifier(BaseModifier):
 
     def draw_blocks(self):
         for x, y in self.block_positions:
-            rect = pygame.Rect(x * self.size, y * self.size, self.size, self.size)
+            rect = pygame.Rect(
+                x * self.game.block_size,
+                y * self.game.block_size,
+                self.game.block_size,
+                self.game.block_size,
+            )
             pygame.draw.rect(self.game.game_surface, Colors.BLUE, rect, 0)

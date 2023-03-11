@@ -11,11 +11,15 @@ from data.states.start_menu import StartMenu
 pygame.init()
 pygame.display.set_caption("Snake")
 
-settings = {"size": (400, 450), "fps": 60}
-app = Control(**settings)
-game = Game()
+block_count = 20
+block_size = 30
+score_height = 70
+size = (block_count * block_size, (block_count * block_size + score_height))
+fps = 60
+app = Control(size, fps)
+game = Game(block_count, block_size, score_height)
 state_dict = {
-    "start": StartMenu(settings),
+    "start": StartMenu(size),
     "game": game,
     "name_entry": NameEntry(game),
     "game_over": GameOverScreen(game),
