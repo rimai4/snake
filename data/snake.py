@@ -1,3 +1,5 @@
+import os
+
 import pygame
 
 from data.colors import Colors
@@ -11,6 +13,16 @@ class Snake:
         self.last_tail = self.body[-1]
         self.direction_changes = []
         self.max_length = self.game.game_screen_size / self.body_part_size
+        self.head_down = pygame.image.load(
+            os.path.join("resources", "snake_head_down.png")
+        )
+        self.head_right = pygame.image.load(
+            os.path.join("resources", "snake_head_right.png")
+        )
+        self.head_up = pygame.image.load(os.path.join("resources", "snake_head_up.png"))
+        self.head_left = pygame.image.load(
+            os.path.join("resources", "snake_head_left.png")
+        )
 
     @property
     def tail(self):
@@ -78,8 +90,24 @@ class Snake:
         targets = [self.last_tail] + self.body[:-1]
         return self.head in targets
 
+    def get_coordinates(self, position):
+        x, y = position
+        return (x * self.body_part_size, y * self.body_part_size)
+
+    def draw_head(self):
+        head_coordinates = self.get_coordinates(self.head)
+
+        if self.direction == "left":
+            self.game.game_surface.blit(self.head_left, head_coordinates)
+        if self.direction == "right":
+            self.game.game_surface.blit(self.head_right, head_coordinates)
+        if self.direction == "down":
+            self.game.game_surface.blit(self.head_down, head_coordinates)
+        if self.direction == "up":
+            self.game.game_surface.blit(self.head_up, head_coordinates)
+
     def draw(self):
-        for x, y in self.body:
+        for x, y in self.body[:-1]:
             rect = pygame.Rect(
                 x * self.body_part_size,
                 y * self.body_part_size,
@@ -87,3 +115,4 @@ class Snake:
                 self.body_part_size,
             )
             pygame.draw.rect(self.game.game_surface, Colors.GREEN, rect, 0)
+        self.draw_head()
