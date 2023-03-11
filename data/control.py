@@ -13,6 +13,7 @@ class Control:
         self.state_dict = state_dict
         self.state_name = start_state
         self.state = state_dict[self.state_name]
+        self.state.setup()
 
     def flip_state(self):
         self.state.done = False
