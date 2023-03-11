@@ -4,7 +4,8 @@ import pygame
 
 from data.apple import Apple
 from data.colors import Colors
-from data.events import DISABLE_MODIFIER, HIDE_MODIFIER, SPAWN_MODIFIER
+from data.events import (DISABLE_MODIFIER, HIDE_MODIFIER, MOVE_SNAKE,
+                         SPAWN_MODIFIER)
 from data.fortifier import Fortifier
 from data.snake import Snake
 from data.states.base_state import BaseState
@@ -34,10 +35,7 @@ class Game(BaseState):
     def thunder_mode(self):
         return self.mode == "thunder"
 
-    def update(self, screen, dt):
-        self.snake.change_direction()
-        self.snake.move()
-
+    def check_collision(self):
         if self.snake.collides_with_self():
             self.end()
         if self.snake.overlaps(self.apple.position, head_only=True):
@@ -49,6 +47,7 @@ class Game(BaseState):
         if self.fortified_mode and self.fortifier.check_block_hit():
             self.end()
 
+    def update(self, screen, dt):
         self.draw(screen)
 
     def draw(self, screen):
@@ -74,16 +73,14 @@ class Game(BaseState):
         self.thunder = Thunder(self)
         self.fortifier = Fortifier(self)
         self.modifier: Modifier = None  # type: ignore
+        pygame.time.set_timer(MOVE_SNAKE, 100)
         pygame.time.set_timer(SPAWN_MODIFIER, 3000, loops=1)
 
     def cleanup(self):
+        pygame.time.set_timer(MOVE_SNAKE, 0)
         pygame.time.set_timer(SPAWN_MODIFIER, 0)
         pygame.time.set_timer(HIDE_MODIFIER, 0)
         pygame.time.set_timer(DISABLE_MODIFIER, 0)
-
-    def start(self):
-        self.score = 0
-        self.snake.initialize_body()
 
     def get_all_coordinates(self):
         block_count = self.game_screen_size // self.snake_size
@@ -123,15 +120,18 @@ class Game(BaseState):
 
     def get_event(self, event):
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT and self.snake.is_moving_vertically:
+            if event.key == pygame.K_RIGHT:
                 self.snake.add_direction_change("right")
-            elif event.key == pygame.K_LEFT and self.snake.is_moving_vertically:
+            elif event.key == pygame.K_LEFT:
                 self.snake.add_direction_change("left")
-            elif event.key == pygame.K_UP and self.snake.is_moving_horizontally:
+            elif event.key == pygame.K_UP:
                 self.snake.add_direction_change("up")
-            elif event.key == pygame.K_DOWN and self.snake.is_moving_horizontally:
+            elif event.key == pygame.K_DOWN:
                 self.snake.add_direction_change("down")
 
+        elif event.type == MOVE_SNAKE:
+            self.snake.move()
+            self.check_collision()
         elif event.type == SPAWN_MODIFIER:
             self.modifier = random.choice([self.thunder, self.fortifier])
             self.modifier.set_icon_location()

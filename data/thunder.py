@@ -4,6 +4,7 @@ import random
 import pygame
 
 from data.base_modifier import BaseModifier
+from data.events import MOVE_SNAKE
 
 
 class Thunder(BaseModifier):
@@ -31,7 +32,7 @@ class Thunder(BaseModifier):
             self.game.game_surface.blit(self.image, self.coordinates)
 
     def modify(self):
-        self.game.snake.set_speed("fast")
+        pygame.time.set_timer(MOVE_SNAKE, 60)
 
     def reset(self):
-        self.game.snake.set_speed("normal")
+        pygame.time.set_timer(MOVE_SNAKE, 100)
