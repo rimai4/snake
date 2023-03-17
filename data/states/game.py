@@ -92,7 +92,7 @@ class Game(BaseState):
         coordinates = []
         for i in range(block_count):
             for j in range(block_count):
-                coordinates.append((i, j))
+                coordinates.append(pygame.Vector2(i, j))
         return coordinates
 
     def end(self):
@@ -127,19 +127,19 @@ class Game(BaseState):
     def get_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT:
-                self.snake.add_direction_change("right")
+                self.snake.add_direction_change(pygame.Vector2(1, 0))
             elif event.key == pygame.K_LEFT:
-                self.snake.add_direction_change("left")
+                self.snake.add_direction_change(pygame.Vector2(-1, 0))
             elif event.key == pygame.K_UP:
-                self.snake.add_direction_change("up")
+                self.snake.add_direction_change(pygame.Vector2(0, -1))
             elif event.key == pygame.K_DOWN:
-                self.snake.add_direction_change("down")
+                self.snake.add_direction_change(pygame.Vector2(0, 1))
 
         elif event.type == MOVE_SNAKE:
             self.snake.move()
             self.check_collision()
         elif event.type == SPAWN_MODIFIER:
-            self.modifier = random.choice([self.thunder, self.fortifier])
+            self.modifier = random.choice([self.thunder])
             self.modifier.set_icon_location()
             pygame.time.set_timer(HIDE_MODIFIER, 10000, loops=1)
         elif event.type == HIDE_MODIFIER:
