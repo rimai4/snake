@@ -18,7 +18,7 @@ class Forest:
             item
             for item in self.game.board_coordinates
             if item not in used_blocks
-            and (abs(head.x - item.x) > 2 and abs(head.y - item.y) > 2)
+            and (abs(head.x - item.x) > 1 and abs(head.y - item.y) > 1)
         ]
         tree_count = 20
         if len(possible_locations) < 30:
