@@ -11,7 +11,7 @@ from data.states.start_menu import StartMenu
 pygame.init()
 pygame.display.set_caption("Snake")
 
-block_count = 15
+block_count = 12
 block_size = 30
 score_height = 70
 size = (block_count * block_size, (block_count * block_size + score_height))
