@@ -32,6 +32,9 @@ class Forest:
                 (tree.x * self.game.block_size, tree.y * self.game.block_size),
             )
 
+    def reset(self):
+        self.tree_locations = []
+
     def check_collision(self):
         for tree in self.tree_locations:
             if self.game.snake.overlaps(tree):

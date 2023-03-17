@@ -21,7 +21,7 @@ class Game(BaseState):
         self.block_size = block_size
         self.game_screen_size = block_count * block_size
         self.score_height = score_height
-        self.modes = ["forest"]
+        self.modes = ["forest", "thunder"]
         self.board_coordinates = self.get_all_coordinates()
         self.score_surface = pygame.Surface((self.game_screen_size, self.score_height))
         self.game_surface = pygame.Surface(
@@ -48,9 +48,15 @@ class Game(BaseState):
         self.draw(screen)
 
     def draw(self, screen):
-        self.score_surface.fill(
-            Colors.YELLOW if self.mode == "thunder" else Colors.WHITE
-        )
+        mode_colors = {
+            "normal": Colors.WHITE,
+            "thunder": Colors.YELLOW,
+            "forest": Colors.GREEN,
+        }
+        score_color = Colors.WHITE
+        if self.mode != "normal":
+            score_color = mode_colors[self.next_mode]
+        self.score_surface.fill(score_color)
         self.game_surface.fill(Colors.BLACK)
 
         self.apple.draw()
@@ -74,16 +80,16 @@ class Game(BaseState):
             Colors.BLACK,
             self.game_screen_size * 0.5,
             self.score_height / 2,
+            title=True,
         )
 
     def draw_next_event(self):
-        self.render_text(
-            self.score_surface,
-            f"next mode: {self.next_mode}".upper(),
-            Colors.BLACK,
-            self.game_screen_size * 0.25,
-            self.score_height / 2,
-        )
+        position_rect = pygame.rect.Rect(0, 0, self.block_size, self.block_size)
+        position_rect.center = (self.game_screen_size * 0.2, self.score_height / 2)
+        if self.next_mode == "thunder":
+            self.score_surface.blit(self.thunder.image, position_rect)
+        elif self.next_mode == "forest":
+            self.score_surface.blit(self.forest.tree_image, position_rect)
 
     def setup(self):
         self.counter = 0
@@ -95,7 +101,7 @@ class Game(BaseState):
         self.thunder = Thunder(self)
         self.fortifier = Fortifier(self)
         pygame.time.set_timer(MOVE_SNAKE, 90)
-        pygame.time.set_timer(START_EVENT_COUNTDOWN, 3000, loops=1)
+        pygame.time.set_timer(START_EVENT_COUNTDOWN, 5000, loops=1)
 
     def cleanup(self):
         pygame.time.set_timer(MOVE_SNAKE, 0)
@@ -123,9 +129,6 @@ class Game(BaseState):
         self.apple.update_coordinates()
         self.snake.extend()
 
-    def draw_trees(self):
-        pass
-
     def draw_score(self):
         self.render_text(
             self.score_surface,
@@ -133,6 +136,7 @@ class Game(BaseState):
             Colors.BLACK,
             self.game_screen_size * 0.9,
             self.score_height / 2,
+            title=True,
         )
 
     def get_event(self, event):
@@ -161,10 +165,13 @@ class Game(BaseState):
                         pygame.time.set_timer(MOVE_SNAKE, 50)
                     elif self.mode == "forest":
                         self.forest.update_tree_locations()
-                    self.counter = 3
-                    pygame.time.set_timer(COUNT, 1000, loops=10)
-                else:
+                    self.counter = 8
+                    pygame.time.set_timer(COUNT, 1000, loops=8)
+                else:  # special mode has ended
                     if self.mode == "thunder":
                         pygame.time.set_timer(MOVE_SNAKE, 90)
+                    elif self.mode == "forest":
+                        self.forest.reset()
                     self.mode = "normal"
+                    self.next_mode = random.choice(self.modes)
                     pygame.time.set_timer(START_EVENT_COUNTDOWN, 5000, loops=1)

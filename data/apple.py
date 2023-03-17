@@ -11,10 +11,9 @@ class Apple:
         self.update_coordinates()
 
     def update_coordinates(self):
+        used_blocks = self.game.snake.body + self.game.forest.tree_locations
         possible_locations = [
-            item
-            for item in self.game.board_coordinates
-            if item not in self.game.snake.body
+            item for item in self.game.board_coordinates if item not in used_blocks
         ]
         self.position = random.choice(possible_locations)
         self.coordinates = (
